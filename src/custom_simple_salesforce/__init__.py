@@ -1,2 +1,4 @@
-def hello() -> str:
-    return "Hello from custom-simple-salesforce!"
+from .api import Sf
+from .bulk import SfBulk
+
+__all__ = ["Sf", "SfBulk"]
