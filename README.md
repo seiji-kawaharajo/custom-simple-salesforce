@@ -1,11 +1,14 @@
 # custom-simple-salesforce
-`custom-simple-salesforce`は、Salesforce Bulk APIを扱うためのPythonライブラリです。
 
-`simple-salesforce`をベースに、認証プロセスを簡素化し、Bulk APIの操作をより扱いやすくするための機能を提供します。
+`custom-simple-salesforce` is a Python library for handling the Salesforce Bulk API.
 
-## インストール
+Based on `simple-salesforce`, it provides features to simplify the authentication process and make Bulk API operations easier to handle.
 
-このライブラリは、`uv`または`pip`でインストールできます。
+---
+
+## Installation
+
+This library can be installed with `uv` or `pip`.
 
 ```bash
 uv pip install git+https://github.com/seiji-kawaharajo/custom-simple-salesforce.git
@@ -13,13 +16,13 @@ uv pip install git+https://github.com/seiji-kawaharajo/custom-simple-salesforce.
 pip install git+https://github.com/seiji-kawaharajo/custom-simple-salesforce.git
 ```
 
-## 使い方
+## Usage
 
-### 1.接続
+### 1. Connecting
 
-ライブラリの`Sf`クラスを使って、YamlやDictからSalesforceに接続出来ます。パスワード認証とクライアント認証に対応しています。
+You can connect to Salesforce from YAML or a Python dictionary using the library's `Sf` class. It supports both password authentication and client credentials authentication.
 
-または、simple-salesforceのsalesforceを継承しているので、同じ用にパラメータを渡せば使用することが出来ます
+Alternatively, since it inherits `Salesforce` from `simple-salesforce`, you can use it by passing parameters in the same way.
 
 `config.yaml`
 ```yml
@@ -39,41 +42,43 @@ with open("config.yaml", "r") as f:
     config = yaml.safe_load(f)
 
 sf_connection = Sf.connection(config)
-print("接続成功！")
+print("Connection successful!")
 ```
 
-### 2.bulk queryの実行例
+### 2. Bulk Query Example
+
+Use the `bulk` module to efficiently query large amounts of data. The results are returned as a list of dictionaries.
 
 `bulk`モジュールを使って、大規模なデータを効率的にクエリできます。結果は辞書のリストとして返されます。
 
 ```py
 from custom_simple_salesforce import Sf, SfBulk
 
-# 認証済みSfオブジェクトを取得（上記参照）
+# Get an authenticated Sf object (see above)
 sf_connection = ...
 
-# SfBulkクライアントを作成
+# Create an SfBulk client
 bulk_client = SfBulk(sf_connection)
 
-# バルククエリジョブを作成し、実行
+# Create and execute a bulk query job
 query_job = bulk_client.create_job_query(
     "SELECT Id, Name FROM Account"
 )
 
-# ジョブの完了を待機
+# Wait for the job to complete
 query_job.poll_status()
 
-# 結果を辞書のリストとして取得
+# Get the results as a list of dictionaries
 results = query_job.get_results()
 
-# 取得したデータを表示
-for record in results[:3]: # 先頭3件を表示
+# Print the retrieved data
+for record in results[:3]: # Print the first 3 records
     print(record)
 ```
 
-### 3.Bulk Insertの実行例
+### Bulk Insert Example
 
-大規模なデータを一括で作成（Insert）する例です。
+An example of creating large amounts of data in a single operation (Insert).
 
 `records.csv`
 
@@ -86,26 +91,26 @@ Test Account 2,Finance
 ```py
 from custom_simple_salesforce import Sf, SfBulk
 
-# 認証済みSfオブジェクトを取得（上記参照）
+# Get an authenticated Sf object (see above)
 sf_connection = ...
 
-# SfBulkクライアントを作成
+# Create an SfBulk client
 bulk_client = SfBulk(sf_connection)
 
-# CSVファイルを読み込み、文字列として取得
+# Read the CSV file and get the data as a string
 with open("records.csv", "r") as f:
     csv_data = f.read()
 
-# Insertジョブを作成
+# Create an Insert job
 insert_job = bulk_client.create_job_insert("Account")
 
-# データをアップロード
+# Upload the data
 insert_job.upload_data(csv_data)
 
-# ジョブの完了を待機
+# Wait for the job to complete
 insert_job.poll_status()
 
-# 成功したレコードの結果を取得
+# Get the results of the successful records
 successful_results = insert_job.get_successful_results()
-print("成功レコード:", successful_results)
+print("Successful records:", successful_results)
 ```
