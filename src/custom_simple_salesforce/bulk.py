@@ -1,9 +1,9 @@
+import csv
 import io
 from copy import deepcopy
 from time import sleep
-from typing import Any, cast
+from typing import Any, Dict, List, cast
 
-import pandas as pd
 import requests
 
 from .api import Sf
@@ -73,7 +73,7 @@ class SfBulk:
 
         return _job_info
 
-    def get_job_query_results(self: "SfBulk", job_id: str) -> pd.DataFrame:
+    def get_job_query_results(self: "SfBulk", job_id: str) -> List[Dict[str, Any]]:
         """Get query job results as DataFrame."""
         _response = requests.get(
             f"{self.bulk2_url}query/{job_id}/results",
@@ -82,7 +82,7 @@ class SfBulk:
         )
         _response.raise_for_status()
         _response.encoding = "utf-8"
-        return pd.read_csv(io.StringIO(_response.text))
+        return list(csv.DictReader(io.StringIO(_response.text)))
 
     # CRUD operations
     def create_job_insert_raw(self: "SfBulk", object_name: str) -> dict[str, Any]:
@@ -217,7 +217,9 @@ class SfBulk:
 
         return _job_info
 
-    def get_ingest_successful_results(self: "SfBulk", job_id: str) -> pd.DataFrame:
+    def get_ingest_successful_results(
+        self: "SfBulk", job_id: str
+    ) -> List[Dict[str, Any]]:
         """Get successful results from ingest job."""
         _response = requests.get(
             f"{self.bulk2_url}ingest/{job_id}/successfulResults",
@@ -226,9 +228,9 @@ class SfBulk:
         )
         _response.raise_for_status()
         _response.encoding = "utf-8"
-        return pd.read_csv(io.StringIO(_response.text))
+        return list(csv.DictReader(io.StringIO(_response.text)))
 
-    def get_ingest_failed_results(self: "SfBulk", job_id: str) -> pd.DataFrame:
+    def get_ingest_failed_results(self: "SfBulk", job_id: str) -> List[Dict[str, Any]]:
         """Get failed results from ingest job."""
         _response = requests.get(
             f"{self.bulk2_url}ingest/{job_id}/failedResults",
@@ -237,9 +239,11 @@ class SfBulk:
         )
         _response.raise_for_status()
         _response.encoding = "utf-8"
-        return pd.read_csv(io.StringIO(_response.text))
+        return list(csv.DictReader(io.StringIO(_response.text)))
 
-    def get_ingest_unprocessed_records(self: "SfBulk", job_id: str) -> pd.DataFrame:
+    def get_ingest_unprocessed_records(
+        self: "SfBulk", job_id: str
+    ) -> List[Dict[str, Any]]:
         """Get unprocessed records from ingest job."""
         _response = requests.get(
             f"{self.bulk2_url}ingest/{job_id}/unprocessedrecords",
@@ -248,4 +252,4 @@ class SfBulk:
         )
         _response.raise_for_status()
         _response.encoding = "utf-8"
-        return pd.read_csv(io.StringIO(_response.text))
+        return list(csv.DictReader(io.StringIO(_response.text)))

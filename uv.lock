@@ -147,6 +147,7 @@ source = { editable = "." }
 dependencies = [
     { name = "pydantic" },
     { name = "pyyaml" },
+    { name = "requests" },
     { name = "simple-salesforce" },
 ]
 
@@ -161,6 +162,7 @@ dev = [
 requires-dist = [
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "pyyaml", specifier = ">=6.0.2" },
+    { name = "requests", specifier = ">=2.32.5" },
     { name = "simple-salesforce", specifier = ">=1.12.9" },
 ]
 

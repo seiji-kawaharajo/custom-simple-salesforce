@@ -4,9 +4,7 @@ This module provides classes for managing Salesforce bulk job operations,
 including query jobs and CRUD operation jobs.
 """
 
-from typing import TYPE_CHECKING
-
-import pandas as pd
+from typing import TYPE_CHECKING, Any, Dict, List
 
 if TYPE_CHECKING:
     from .bulk import SfBulk
@@ -26,7 +24,7 @@ class SfBulkJobQuery:
         self.info = self._sf_bulk.poll_job_query(self.id)
         return self.info
 
-    def get_results(self: "SfBulkJobQuery") -> pd.DataFrame:
+    def get_results(self: "SfBulkJobQuery") -> List[Dict[str, Any]]:
         """Get job results as DataFrame."""
         return self._sf_bulk.get_job_query_results(self.id)
 
@@ -53,14 +51,14 @@ class SfBulkJob:
         self.info = self._sf_bulk.poll_job(job_id=self.id)
         return self.info
 
-    def get_successful_results(self: "SfBulkJob") -> pd.DataFrame:
+    def get_successful_results(self: "SfBulkJob") -> List[Dict[str, Any]]:
         """Get successful results as DataFrame."""
         return self._sf_bulk.get_ingest_successful_results(job_id=self.id)
 
-    def get_failed_results(self: "SfBulkJob") -> pd.DataFrame:
+    def get_failed_results(self: "SfBulkJob") -> List[Dict[str, Any]]:
         """Get failed results as DataFrame."""
         return self._sf_bulk.get_ingest_failed_results(job_id=self.id)
 
-    def get_unprocessed_records(self: "SfBulkJob") -> pd.DataFrame:
+    def get_unprocessed_records(self: "SfBulkJob") -> List[Dict[str, Any]]:
         """Get unprocessed records as DataFrame."""
         return self._sf_bulk.get_ingest_unprocessed_records(job_id=self.id)

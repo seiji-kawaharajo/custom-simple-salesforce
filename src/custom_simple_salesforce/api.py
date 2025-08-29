@@ -7,7 +7,7 @@ from simple_salesforce.api import Salesforce
 
 
 class PasswordAuthSettings(BaseModel):
-    auth_method: str
+    auth_method: Literal["password", "client_credentials"]
     username: str
     password: SecretStr
     security_token: SecretStr
@@ -16,7 +16,7 @@ class PasswordAuthSettings(BaseModel):
 
 
 class ClientCredentialsSettings(BaseModel):
-    auth_method: str
+    auth_method: Literal["password", "client_credentials"]
     client_id: str
     client_secret: SecretStr
     domain: str = "login"
