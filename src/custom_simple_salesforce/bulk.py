@@ -76,13 +76,13 @@ class SfBulk:
         return interval if interval is not None else self._interval
 
     # Query operations
-    def create_job_query_raw(
+    def create_job_query(
         self: "SfBulk",
         query: str,
         *,
         include_all: bool = False,
-    ) -> dict[str, Any]:
-        """Create a raw query job."""
+    ) -> SfBulkJobQuery:
+        """Create a query job."""
         _operation = "query"
         if include_all:
             _operation += "All"
@@ -95,19 +95,7 @@ class SfBulk:
                 "query": query,
             },
         )
-
-        return cast("dict[str, Any]", _response.json())
-
-    def create_job_query(
-        self: "SfBulk",
-        query: str,
-        *,
-        include_all: bool = False,
-    ) -> SfBulkJobQuery:
-        """Create a query job."""
-        return SfBulkJobQuery(
-            self, self.create_job_query_raw(query, include_all=include_all)
-        )
+        return SfBulkJobQuery(self, cast("dict[str, Any]", _response.json()))
 
     def get_job_query_info(self: "SfBulk", job_id: str) -> dict[str, Any]:
         """Get query job information."""
@@ -142,45 +130,13 @@ class SfBulk:
         return self._get_csv_results(f"query/{job_id}/results", format)
 
     # CRUD operations
-    def create_job_insert_raw(self: "SfBulk", object_name: str) -> dict[str, Any]:
-        """Create a raw insert job."""
-        return self.create_job_raw(object_name, "insert")
-
     def create_job_insert(self: "SfBulk", object_name: str) -> SfBulkJob:
         """Create an insert job."""
         return self.create_job(object_name, "insert")
 
-    def create_job_delete_raw(self: "SfBulk", object_name: str) -> dict[str, Any]:
-        """Create a raw delete job."""
-        return self.create_job_raw(object_name, "delete")
-
-    def create_job_delete(self: "SfBulk", object_name: str) -> SfBulkJob:
-        """Create a delete job."""
-        return self.create_job(object_name, "delete")
-
-    def create_job_hard_delete_raw(self: "SfBulk", object_name: str) -> dict[str, Any]:
-        """Create a raw hard delete job."""
-        return self.create_job_raw(object_name, "hardDelete")
-
-    def create_job_hard_delete(self: "SfBulk", object_name: str) -> SfBulkJob:
-        """Create a hard delete job."""
-        return self.create_job(object_name, "hardDelete")
-
-    def create_job_update_raw(self: "SfBulk", object_name: str) -> dict[str, Any]:
-        """Create a raw update job."""
-        return self.create_job_raw(object_name, "update")
-
     def create_job_update(self: "SfBulk", object_name: str) -> SfBulkJob:
         """Create an update job."""
         return self.create_job(object_name, "update")
-
-    def create_job_upsert_raw(
-        self: "SfBulk",
-        object_name: str,
-        external_id_field: str,
-    ) -> dict[str, Any]:
-        """Create a raw upsert job."""
-        return self.create_job_raw(object_name, "upsert", external_id_field)
 
     def create_job_upsert(
         self: "SfBulk", object_name: str, external_id_field: str
@@ -188,13 +144,21 @@ class SfBulk:
         """Create an upsert job."""
         return self.create_job(object_name, "upsert", external_id_field)
 
-    def create_job_raw(
+    def create_job_delete(self: "SfBulk", object_name: str) -> SfBulkJob:
+        """Create a delete job."""
+        return self.create_job(object_name, "delete")
+
+    def create_job_hard_delete(self: "SfBulk", object_name: str) -> SfBulkJob:
+        """Create a hard delete job."""
+        return self.create_job(object_name, "hardDelete")
+
+    def create_job(
         self: "SfBulk",
         object_name: str,
         operation: str,
         external_id_field: str | None = None,
-    ) -> dict[str, Any]:
-        """Create a raw job with specified operation."""
+    ) -> SfBulkJob:
+        """Create a job with specified operation."""
         if operation == "upsert" and not external_id_field:
             error_msg = "operation が 'upsert' の場合、external_id_field は必須です。"
             raise ValueError(error_msg)
@@ -204,7 +168,7 @@ class SfBulk:
             "operation": operation,
         }
 
-        if operation == "upsert" and external_id_field is not None:
+        if external_id_field:
             _payload["externalIdFieldName"] = external_id_field
 
         _response = self._make_request(
@@ -213,19 +177,7 @@ class SfBulk:
             json=_payload,
         )
 
-        return cast("dict[str, Any]", _response.json())
-
-    def create_job(
-        self: "SfBulk",
-        object_name: str,
-        operation: str,
-        external_id_field: str | None = None,
-    ) -> SfBulkJob:
-        """Create a job with specified operation."""
-        return SfBulkJob(
-            self,
-            self.create_job_raw(object_name, operation, external_id_field),
-        )
+        return SfBulkJob(self, cast("dict[str, Any]", _response.json()))
 
     def upload_job_data(self: "SfBulk", job_id: str, csv_data: str) -> None:
         """Upload CSV data to a job."""
@@ -238,7 +190,7 @@ class SfBulk:
 
     def uploaded_job(self: "SfBulk", job_id: str) -> None:
         """Mark job as uploaded."""
-        _response = self._make_request(
+        self._make_request(
             "PATCH",
             f"ingest/{job_id}",
             json={"state": "UploadComplete"},

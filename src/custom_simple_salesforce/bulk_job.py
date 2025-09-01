@@ -4,7 +4,7 @@ This module provides classes for managing Salesforce bulk job operations,
 including query jobs and CRUD operation jobs.
 """
 
-from typing import TYPE_CHECKING, Any, Dict, List
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .bulk import SfBulk
@@ -24,9 +24,7 @@ class SfBulkJobQuery:
         self.info = self._sf_bulk.poll_job_query(self.id, interval=interval)
         return self.info
 
-    def get_results(
-        self: "SfBulkJobQuery", format: str = "dict"
-    ) -> List[Dict[str, Any]]:
+    def get_results(self: "SfBulkJobQuery", format: str = "dict") -> Any:
         """Get job results as DataFrame."""
         return self._sf_bulk.get_job_query_results(self.id, format=format)
 
@@ -52,6 +50,22 @@ class SfBulkJob:
         """Poll job status until completion."""
         self.info = self._sf_bulk.poll_job(job_id=self.id, interval=interval)
         return self.info
+
+    def is_successful(self: "SfBulkJob") -> bool:
+        """ジョブが正常に完了した場合にTrueを返します。"""
+        return self.info.get("state") == "JobComplete"
+
+    def has_failed_records(self: "SfBulkJob") -> bool:
+        """ジョブが正常に完了した場合にTrueを返します。"""
+        return self.info.get("numberRecordsFailed") > 0
+
+    def is_failed(self: "SfBulkJob") -> bool:
+        """ジョブが失敗した場合にTrueを返します。"""
+        return self.info.get("state") == "Failed"
+
+    def is_aborted(self: "SfBulkJob") -> bool:
+        """ジョブが中断された場合にTrueを返します。"""
+        return self.info.get("state") == "Aborted"
 
     def get_successful_results(self: "SfBulkJob", format: str = "dict") -> Any:
         """Get successful results as DataFrame."""
