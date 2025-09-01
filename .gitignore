@@ -9,6 +9,5 @@ wheels/
 # Virtual environments
 .venv
 
-
-# 一旦除外
-sample/
+# env
+.env

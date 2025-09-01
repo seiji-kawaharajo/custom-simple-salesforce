@@ -4,8 +4,6 @@
 
 Based on `simple-salesforce`, it provides features to simplify the authentication process and make Bulk API operations easier to handle.
 
----
-
 ## Installation
 
 This library can be installed with `uv` or `pip`.
@@ -24,25 +22,47 @@ You can connect to Salesforce from YAML or a Python dictionary using the library
 
 Alternatively, since it inherits `Salesforce` from `simple-salesforce`, you can use it by passing parameters in the same way.
 
-`config.yaml`
-```yml
+`connect.py`
+```py
+from custom_simple_salesforce import Sf
+
+# Example using a YAML string
+yaml_string = """
 auth_method: password
 username: your_username@example.com
 password: your_password
 security_token: your_security_token
 domain: login
-```
+"""
 
-`connect.py`
-```py
-import yaml
-from custom_simple_salesforce import Sf
+sf_connection = Sf.connection(yaml_string)
+print("Connection successful using YAML string!")
 
-with open("config.yaml", "r") as f:
-    config = yaml.safe_load(f)
+# Example using a Python dictionary
+dict_config = {
+    "auth_method": "password",
+    "username": "your_username@example.com",
+    "password": "your_password",
+    "security_token": "your_security_token",
+    "domain": "login",
+}
 
-sf_connection = Sf.connection(config)
-print("Connection successful!")
+sf_connection_dict = Sf.connection(dict_config)
+print("Connection successful using a dictionary!")
+
+json_string = """
+{
+    "auth_method": "password",
+    "username": "your_username@example.com",
+    "password": "your_password",
+    "security_token": "your_security_token",
+    "domain": "login"
+}
+"""
+
+# JSON文字列をそのままconnectionメソッドに渡す
+sf_connection = Sf.connection(json_string)
+print("Connection successful using json string!")
 ```
 
 ### 2. Bulk Query Example
