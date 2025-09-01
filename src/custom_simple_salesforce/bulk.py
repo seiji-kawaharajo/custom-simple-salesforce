@@ -2,7 +2,7 @@ import csv
 import io
 from copy import deepcopy
 from time import sleep
-from typing import Any, Dict, List, cast
+from typing import Any, cast
 
 import requests
 
@@ -13,10 +13,67 @@ from .bulk_job import SfBulkJob, SfBulkJobQuery
 class SfBulk:
     """Salesforce Bulk API client."""
 
-    def __init__(self: "SfBulk", sf: Sf) -> None:
+    # 共通部
+    def __init__(self: "SfBulk", sf: Sf, interval: int = 5, timeout: int = 30) -> None:
         """Initialize Bulk API client with Salesforce connection."""
         self.bulk2_url = sf.bulk2_url
         self.headers = sf.headers
+        self._interval = interval
+        self._timeout = timeout
+
+    def _make_request(
+        self: "SfBulk",
+        method: str,
+        endpoint: str,
+        headers: dict = None,
+        **kwargs: Any,
+    ) -> requests.Response:
+        """
+        APIリクエストを送信し、ステータスを確認するプライベートヘルパーメソッド。
+        """
+        final_headers = deepcopy(self.headers)
+        if headers:
+            final_headers.update(headers)
+
+        _response = requests.request(
+            method,
+            f"{self.bulk2_url}{endpoint}",
+            headers=final_headers,
+            timeout=self._timeout,
+            **kwargs,
+        )
+        _response.raise_for_status()
+
+        return _response
+
+    def _get_csv_results(self, endpoint: str, format: str) -> Any:
+        allowed_formats = ("dict", "reader", "csv")
+        if format not in allowed_formats:
+            raise ValueError(
+                f"Unsupported format: '{format}'. "
+                f"Allowed formats are: {', '.join(allowed_formats)}"
+            )
+
+        _response = self._make_request("GET", endpoint)
+        _response.encoding = "utf-8"
+
+        _csv_data_io = io.StringIO(_response.text)
+        match format:
+            case "dict":
+                return list(csv.DictReader(_csv_data_io))
+            case "reader":
+                return list(csv.reader(_csv_data_io))
+            case "csv":
+                return _response.text
+            case _:
+                # ここには到達しないはず
+                raise ValueError("Internal error: Unsupported format.")
+
+    def _get_final_interval(self, interval: int) -> int:
+        """
+        ポーリング間隔の最終値を決定するヘルパーメソッド。
+        """
+        return interval if interval is not None else self._interval
 
     # Query operations
     def create_job_query_raw(
@@ -30,13 +87,14 @@ class SfBulk:
         if include_all:
             _operation += "All"
 
-        _response = requests.post(
-            f"{self.bulk2_url}query",
-            headers=self.headers,
-            json={"operation": _operation, "query": query},
-            timeout=30,
+        _response = self._make_request(
+            "POST",
+            "query",
+            json={
+                "operation": _operation,
+                "query": query,
+            },
         )
-        _response.raise_for_status()
 
         return cast("dict[str, Any]", _response.json())
 
@@ -53,15 +111,17 @@ class SfBulk:
 
     def get_job_query_info(self: "SfBulk", job_id: str) -> dict[str, Any]:
         """Get query job information."""
-        _response = requests.get(
-            f"{self.bulk2_url}query/{job_id}",
-            headers=self.headers,
-            timeout=30,
+        _response = self._make_request(
+            "GET",
+            f"query/{job_id}",
         )
-        _response.raise_for_status()
         return cast("dict[str, Any]", _response.json())
 
-    def poll_job_query(self: "SfBulk", job_id: str) -> dict[str, Any]:
+    def poll_job_query(
+        self: "SfBulk",
+        job_id: str,
+        interval: int = None,
+    ) -> dict[str, Any]:
         """Poll query job status until completion."""
         while True:
             _job_info = self.get_job_query_info(job_id)
@@ -69,20 +129,17 @@ class SfBulk:
             if _job_info["state"] in ["Aborted", "JobComplete", "Failed"]:
                 break
 
-            sleep(5)
+            sleep(self._get_final_interval(interval))
 
         return _job_info
 
-    def get_job_query_results(self: "SfBulk", job_id: str) -> List[Dict[str, Any]]:
-        """Get query job results as DataFrame."""
-        _response = requests.get(
-            f"{self.bulk2_url}query/{job_id}/results",
-            headers=self.headers,
-            timeout=30,
-        )
-        _response.raise_for_status()
-        _response.encoding = "utf-8"
-        return list(csv.DictReader(io.StringIO(_response.text)))
+    def get_job_query_results(
+        self: "SfBulk",
+        job_id: str,
+        format: str = "dict",
+    ) -> Any:
+        """Get query job results in a specified format."""
+        return self._get_csv_results(f"query/{job_id}/results", format)
 
     # CRUD operations
     def create_job_insert_raw(self: "SfBulk", object_name: str) -> dict[str, Any]:
@@ -150,13 +207,11 @@ class SfBulk:
         if operation == "upsert" and external_id_field is not None:
             _payload["externalIdFieldName"] = external_id_field
 
-        _response = requests.post(
-            f"{self.bulk2_url}ingest",
-            headers=self.headers,
+        _response = self._make_request(
+            "POST",
+            "ingest",
             json=_payload,
-            timeout=30,
         )
-        _response.raise_for_status()
 
         return cast("dict[str, Any]", _response.json())
 
@@ -174,38 +229,34 @@ class SfBulk:
 
     def upload_job_data(self: "SfBulk", job_id: str, csv_data: str) -> None:
         """Upload CSV data to a job."""
-        _headers_csv = deepcopy(self.headers)
-        _headers_csv["Content-Type"] = "text/csv"
-
-        _response = requests.put(
-            f"{self.bulk2_url}ingest/{job_id}/batches",
+        self._make_request(
+            "PUT",
+            f"ingest/{job_id}/batches",
+            headers={"Content-Type": "text/csv"},
             data=csv_data.encode("utf-8"),
-            headers=_headers_csv,
-            timeout=30,
         )
-        _response.raise_for_status()
 
     def uploaded_job(self: "SfBulk", job_id: str) -> None:
         """Mark job as uploaded."""
-        _response = requests.patch(
-            f"{self.bulk2_url}ingest/{job_id}",
-            headers=self.headers,
+        _response = self._make_request(
+            "PATCH",
+            f"ingest/{job_id}",
             json={"state": "UploadComplete"},
-            timeout=30,
         )
-        _response.raise_for_status()
 
     def get_job_info(self: "SfBulk", job_id: str) -> dict[str, Any]:
         """Get job information."""
-        _response = requests.get(
-            f"{self.bulk2_url}ingest/{job_id}",
-            headers=self.headers,
-            timeout=30,
+        _response = self._make_request(
+            "GET",
+            f"ingest/{job_id}",
         )
-        _response.raise_for_status()
         return cast("dict[str, Any]", _response.json())
 
-    def poll_job(self: "SfBulk", job_id: str) -> dict[str, Any]:
+    def poll_job(
+        self: "SfBulk",
+        job_id: str,
+        interval: int = None,
+    ) -> dict[str, Any]:
         """Poll job status until completion."""
         while True:
             _job_info = self.get_job_info(job_id)
@@ -213,43 +264,30 @@ class SfBulk:
             if _job_info["state"] in ["Aborted", "JobComplete", "Failed"]:
                 break
 
-            sleep(5)
+            sleep(self._get_final_interval(interval))
 
         return _job_info
 
     def get_ingest_successful_results(
-        self: "SfBulk", job_id: str
-    ) -> List[Dict[str, Any]]:
+        self: "SfBulk",
+        job_id: str,
+        format: str = "dict",
+    ) -> Any:
         """Get successful results from ingest job."""
-        _response = requests.get(
-            f"{self.bulk2_url}ingest/{job_id}/successfulResults",
-            headers=self.headers,
-            timeout=30,
-        )
-        _response.raise_for_status()
-        _response.encoding = "utf-8"
-        return list(csv.DictReader(io.StringIO(_response.text)))
+        return self._get_csv_results(f"ingest/{job_id}/successfulResults", format)
 
-    def get_ingest_failed_results(self: "SfBulk", job_id: str) -> List[Dict[str, Any]]:
+    def get_ingest_failed_results(
+        self: "SfBulk",
+        job_id: str,
+        format: str = "dict",
+    ) -> Any:
         """Get failed results from ingest job."""
-        _response = requests.get(
-            f"{self.bulk2_url}ingest/{job_id}/failedResults",
-            headers=self.headers,
-            timeout=30,
-        )
-        _response.raise_for_status()
-        _response.encoding = "utf-8"
-        return list(csv.DictReader(io.StringIO(_response.text)))
+        return self._get_csv_results(f"ingest/{job_id}/failedResults", format)
 
     def get_ingest_unprocessed_records(
-        self: "SfBulk", job_id: str
-    ) -> List[Dict[str, Any]]:
+        self: "SfBulk",
+        job_id: str,
+        format: str = "dict",
+    ) -> Any:
         """Get unprocessed records from ingest job."""
-        _response = requests.get(
-            f"{self.bulk2_url}ingest/{job_id}/unprocessedrecords",
-            headers=self.headers,
-            timeout=30,
-        )
-        _response.raise_for_status()
-        _response.encoding = "utf-8"
-        return list(csv.DictReader(io.StringIO(_response.text)))
+        return self._get_csv_results(f"ingest/{job_id}/unprocessedrecords", format)

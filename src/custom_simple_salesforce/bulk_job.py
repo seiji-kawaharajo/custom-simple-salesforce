@@ -19,14 +19,16 @@ class SfBulkJobQuery:
         self.id = job_info["id"]
         self.info = job_info
 
-    def poll_status(self: "SfBulkJobQuery") -> dict:
+    def poll_status(self: "SfBulkJobQuery", interval: int = None) -> dict:
         """Poll job status until completion."""
-        self.info = self._sf_bulk.poll_job_query(self.id)
+        self.info = self._sf_bulk.poll_job_query(self.id, interval=interval)
         return self.info
 
-    def get_results(self: "SfBulkJobQuery") -> List[Dict[str, Any]]:
+    def get_results(
+        self: "SfBulkJobQuery", format: str = "dict"
+    ) -> List[Dict[str, Any]]:
         """Get job results as DataFrame."""
-        return self._sf_bulk.get_job_query_results(self.id)
+        return self._sf_bulk.get_job_query_results(self.id, format=format)
 
 
 class SfBulkJob:
@@ -46,19 +48,23 @@ class SfBulkJob:
         """Close the job and mark as uploaded."""
         self._sf_bulk.uploaded_job(job_id=self.id)
 
-    def poll_status(self: "SfBulkJob") -> dict:
+    def poll_status(self: "SfBulkJob", interval: int = None) -> dict:
         """Poll job status until completion."""
-        self.info = self._sf_bulk.poll_job(job_id=self.id)
+        self.info = self._sf_bulk.poll_job(job_id=self.id, interval=interval)
         return self.info
 
-    def get_successful_results(self: "SfBulkJob") -> List[Dict[str, Any]]:
+    def get_successful_results(self: "SfBulkJob", format: str = "dict") -> Any:
         """Get successful results as DataFrame."""
-        return self._sf_bulk.get_ingest_successful_results(job_id=self.id)
+        return self._sf_bulk.get_ingest_successful_results(
+            job_id=self.id, format=format
+        )
 
-    def get_failed_results(self: "SfBulkJob") -> List[Dict[str, Any]]:
+    def get_failed_results(self: "SfBulkJob", format: str = "dict") -> Any:
         """Get failed results as DataFrame."""
-        return self._sf_bulk.get_ingest_failed_results(job_id=self.id)
+        return self._sf_bulk.get_ingest_failed_results(job_id=self.id, format=format)
 
-    def get_unprocessed_records(self: "SfBulkJob") -> List[Dict[str, Any]]:
+    def get_unprocessed_records(self: "SfBulkJob", format: str = "dict") -> Any:
         """Get unprocessed records as DataFrame."""
-        return self._sf_bulk.get_ingest_unprocessed_records(job_id=self.id)
+        return self._sf_bulk.get_ingest_unprocessed_records(
+            job_id=self.id, format=format
+        )
