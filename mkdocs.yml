@@ -1,0 +1,83 @@
+site_name: "custom_simple_salesforce"
+copyright: "&copy; 2025 seiji.kawaharajo"
+
+repo_url: https://github.com/seiji-kawaharajo/custom-simple-salesforce
+repo_name: seiji-kawaharajo/custom-simple-salesforce
+
+theme:
+  icon:
+    repo: fontawesome/brands/github
+  name: material
+  language: ja
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: white
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: スイッチをダークモードへ
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: スイッチをライトモードへ
+  features:
+    - navigation.expand
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - content.code.copy
+    - content.code.select
+
+# 参考：https://zenn.dev/mebiusbox/articles/81d977a72cee01
+markdown_extensions:
+  - pymdownx.highlight:
+      use_pygments: true
+      anchor_linenums: true
+      linenums: true
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.details
+  - pymdownx.keys
+  - admonition
+  - def_list
+  - footnotes
+  - pymdownx.tasklist:
+      custom_checkbox: true
+      clickable_checkbox: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+
+nav:
+  - Home: index.md
+  - Reference:
+      - Client: reference/client.md
+      - Bulk: reference/bulk.md
+      - BulkJob: reference/bulk-job.md
+
+plugins:
+  search:
+    lang: "ja"
+  mkdocstrings:
+    handlers:
+      python:
+        paths: [src]
+        options:
+          show_signature_annotations: true
+          separate_signature: true
+          heading_level: 3
+          show_root_heading: true
+          docstring_section_style: list
+          show_source: false
+
+extra:
+  generator: false

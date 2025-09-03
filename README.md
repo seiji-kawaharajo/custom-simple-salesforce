@@ -111,14 +111,28 @@ print("Successful records:", successful_results)
 
 # develop setup
 
-pre-comit active
+## pre-comit active
 
 ```bash
 pre-commit install
 ```
 
-venv active
+## venv active
 
 ```bash
 source /workspaces/custom-simple-salesforce/.venv/bin/activate
+```
+
+## mkdocs
+
+### developer server
+
+```bash
+uv run mkdocs serve
+```
+
+### build
+
+```bash
+uv run mkdocs build
 ```
