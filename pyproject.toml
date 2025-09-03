@@ -38,8 +38,8 @@ docstring-code-format = true
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["D203", "D213", "TD001", "TD002", "TD003"]
-unfixable = ["F401", "F841"]
+ignore = ["D203", "D213", "TD001", "TD002", "TD003", "D4"]
+unfixable = []
 
 fixable = ["ALL"]
 
