@@ -1,4 +1,4 @@
-from typing import Any, Dict, Literal, Union
+from typing import Any, Literal
 
 import requests
 import yaml
@@ -6,21 +6,22 @@ from pydantic import BaseModel, SecretStr, ValidationError
 from simple_salesforce.api import Salesforce
 
 
-class PasswordAuthSettings(BaseModel):
+class SalesforceBaseSettings(BaseModel):
     auth_method: Literal["password", "client_credentials"]
+    api_version: str = "64.0"
+
+
+class PasswordAuthSettings(SalesforceBaseSettings):
     username: str
     password: SecretStr
     security_token: SecretStr
     domain: Literal["login", "test"] = "login"
-    api_version: str = "64.0"
 
 
-class ClientCredentialsSettings(BaseModel):
-    auth_method: Literal["password", "client_credentials"]
+class ClientCredentialsSettings(SalesforceBaseSettings):
     client_id: str
     client_secret: SecretStr
     domain: str = "login"
-    api_version: str = "64.0"
 
 
 class Sf(Salesforce):
@@ -28,17 +29,21 @@ class Sf(Salesforce):
         super().__init__(*args, **kwargs)
 
     @classmethod
-    def connection(cls: type["Sf"], settings: Union[str, Dict[str, Any]]):
-        config: Dict[str, Any]
+    def connection(cls: type["Sf"], settings: str | dict[str, Any]):
+        config: dict[str, Any]
         if isinstance(settings, str):
             try:
                 config = yaml.safe_load(settings) or {}
             except yaml.YAMLError as e:
-                raise ValueError(f"設定文字列の形式が不正です: {e}") from e
+                error_msg = f"設定文字列の形式が不正です: {e}"
+                raise ValueError(error_msg) from e
         elif isinstance(settings, dict):
             config = settings
         else:
-            raise TypeError("設定はJSON文字列または辞書形式で指定してください。")
+            error_msg = "設定はJSON文字列または辞書形式で指定してください。"
+            raise TypeError(error_msg)
+
+        config = {k.lower(): v for k, v in config.items()}
 
         auth_method = config.get("auth_method")
 
@@ -64,7 +69,7 @@ class Sf(Salesforce):
             case "client_credentials":
                 try:
                     validated_settings = ClientCredentialsSettings.model_validate(
-                        config
+                        config,
                     )
                 except ValidationError as e:
                     error_msg = f"Salesforce設定のバリデーションに失敗しました: {e}"
@@ -79,9 +84,7 @@ class Sf(Salesforce):
                     case "test":
                         _endpoint = "https://test.salesforce.com"
                     case _:
-                        _endpoint = (
-                            f"https://{validated_settings.domain}.my.salesforce.com"
-                        )
+                        _endpoint = f"https://{validated_settings.domain}.my.salesforce.com"
 
                 _response = requests.post(
                     f"{_endpoint}/services/oauth2/token",
@@ -91,6 +94,7 @@ class Sf(Salesforce):
                         "client_id": validated_settings.client_id,
                         "client_secret": validated_settings.client_secret.get_secret_value(),
                     },
+                    timeout=10,
                 )
                 _response.raise_for_status()
 
@@ -100,3 +104,6 @@ class Sf(Salesforce):
                     session_id=_response_json.get("access_token"),
                     version=validated_settings.api_version,
                 )
+            case _:
+                error_msg = f"想定外の認証方式が指定されました: {auth_method}"
+                raise ValueError(error_msg)

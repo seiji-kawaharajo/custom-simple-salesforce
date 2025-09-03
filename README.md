@@ -22,7 +22,7 @@ You can connect to Salesforce from YAML or a Python dictionary using the library
 
 Alternatively, since it inherits `Salesforce` from `simple-salesforce`, you can use it by passing parameters in the same way.
 
-`connect.py`
+[`connect.py`](sample/connect.py)
 ```py
 from custom_simple_salesforce import Sf
 
@@ -37,32 +37,6 @@ domain: login
 
 sf_connection = Sf.connection(yaml_string)
 print("Connection successful using YAML string!")
-
-# Example using a Python dictionary
-dict_config = {
-    "auth_method": "password",
-    "username": "your_username@example.com",
-    "password": "your_password",
-    "security_token": "your_security_token",
-    "domain": "login",
-}
-
-sf_connection_dict = Sf.connection(dict_config)
-print("Connection successful using a dictionary!")
-
-json_string = """
-{
-    "auth_method": "password",
-    "username": "your_username@example.com",
-    "password": "your_password",
-    "security_token": "your_security_token",
-    "domain": "login"
-}
-"""
-
-# JSON文字列をそのままconnectionメソッドに渡す
-sf_connection = Sf.connection(json_string)
-print("Connection successful using json string!")
 ```
 
 ### 2. Bulk Query Example
@@ -133,4 +107,18 @@ insert_job.poll_status()
 # Get the results of the successful records
 successful_results = insert_job.get_successful_results()
 print("Successful records:", successful_results)
+```
+
+# develop setup
+
+pre-comit active
+
+```bash
+pre-commit install
+```
+
+venv active
+
+```bash
+source /workspaces/custom-simple-salesforce/.venv/bin/activate
 ```
