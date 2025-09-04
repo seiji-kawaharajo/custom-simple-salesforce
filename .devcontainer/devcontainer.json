@@ -18,7 +18,8 @@
         "tamasfe.even-better-toml",
         "yzhang.markdown-all-in-one",
         "oderwat.indent-rainbow",
-        "usernamehw.errorlens"
+        "usernamehw.errorlens",
+        "ms-python.mypy-type-checker"
       ]
     }
   }

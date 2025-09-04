@@ -1,7 +1,7 @@
 """Salesforce Bulk Job module for Python.
 
-This module provides classes for managing Salesforce bulk job operations,
-including query jobs and CRUD operation jobs.
+This module provides classes for managing Salesforce bulk job operations, including
+query jobs and CRUD operation jobs.
 """
 
 from typing import TYPE_CHECKING, Any
@@ -11,7 +11,10 @@ if TYPE_CHECKING:
 
 
 class SfBulkJobQuery:
-    """Salesforce Bulk Query Job."""
+    """Salesforce Bulk APIクエリジョブを管理するクラス。
+
+    クエリジョブの状態監視や結果の取得を簡素化します。
+    """
 
     def __init__(self: "SfBulkJobQuery", sf_bulk: "SfBulk", job_info: dict) -> None:
         """Initialize query job with bulk client and job info."""
@@ -19,18 +22,24 @@ class SfBulkJobQuery:
         self.id = job_info["id"]
         self.info = job_info
 
-    def poll_status(self: "SfBulkJobQuery", interval: int = None) -> dict:
+    def poll_status(self: "SfBulkJobQuery", interval: int | None = None) -> dict:
         """Poll job status until completion."""
         self.info = self._sf_bulk.poll_job_query(self.id, interval=interval)
         return self.info
 
-    def get_results(self: "SfBulkJobQuery", format: str = "dict") -> Any:
+    def get_results(
+        self: "SfBulkJobQuery",
+        format_type: str = "dict",
+    ) -> list[dict[str, Any]] | list[list[str]] | str:
         """Get job results as DataFrame."""
-        return self._sf_bulk.get_job_query_results(self.id, format=format)
+        return self._sf_bulk.get_job_query_results(self.id, format_type=format_type)
 
 
 class SfBulkJob:
-    """Salesforce Bulk CRUD Job."""
+    """Salesforce Bulk API DMLジョブ(挿入、更新、削除)を管理するクラス。
+
+    CSVデータのアップロード、ジョブの完了、状態監視、および 成功・失敗レコードの取得をサポートします。
+    """
 
     def __init__(self: "SfBulkJob", sf_bulk: "SfBulk", job_info: dict) -> None:
         """Initialize CRUD job with bulk client and job info."""
@@ -70,7 +79,8 @@ class SfBulkJob:
     def get_successful_results(self: "SfBulkJob", format: str = "dict") -> Any:
         """Get successful results as DataFrame."""
         return self._sf_bulk.get_ingest_successful_results(
-            job_id=self.id, format=format
+            job_id=self.id,
+            format=format,
         )
 
     def get_failed_results(self: "SfBulkJob", format: str = "dict") -> Any:
@@ -80,5 +90,6 @@ class SfBulkJob:
     def get_unprocessed_records(self: "SfBulkJob", format: str = "dict") -> Any:
         """Get unprocessed records as DataFrame."""
         return self._sf_bulk.get_ingest_unprocessed_records(
-            job_id=self.id, format=format
+            job_id=self.id,
+            format=format,
         )

@@ -6,12 +6,15 @@ from typing import Any, cast
 
 import requests
 
-from .api import Sf
 from .bulk_job import SfBulkJob, SfBulkJobQuery
+from .client import Sf
 
 
 class SfBulk:
-    """Salesforce Bulk API client."""
+    """Salesforce Bulk API 2.0クライアント。
+
+    本クラスは、クエリやDML操作(挿入、更新、削除)を Bulk API 2.0経由で実行するための機能を提供します。
+    """
 
     # 共通部
     def __init__(self: "SfBulk", sf: Sf, interval: int = 5, timeout: int = 30) -> None:
@@ -25,12 +28,10 @@ class SfBulk:
         self: "SfBulk",
         method: str,
         endpoint: str,
-        headers: dict = None,
-        **kwargs: Any,
+        headers: dict | None = None,
+        **kwargs: Any,  # noqa: ANN401
     ) -> requests.Response:
-        """
-        APIリクエストを送信し、ステータスを確認するプライベートヘルパーメソッド。
-        """
+        """APIリクエストを送信し、ステータスを確認するプライベートヘルパーメソッド。"""
         final_headers = deepcopy(self.headers)
         if headers:
             final_headers.update(headers)
@@ -46,19 +47,26 @@ class SfBulk:
 
         return _response
 
-    def _get_csv_results(self, endpoint: str, format: str) -> Any:
+    def _get_csv_results(
+        self,
+        endpoint: str,
+        format_type: str,
+    ) -> list[dict[str, Any]] | list[list[str]] | str:
         allowed_formats = ("dict", "reader", "csv")
-        if format not in allowed_formats:
-            raise ValueError(
-                f"Unsupported format: '{format}'. "
+        if format_type not in allowed_formats:
+            err_msg = (
+                f"Unsupported format: '{format_type}'. "
                 f"Allowed formats are: {', '.join(allowed_formats)}"
+            )
+            raise ValueError(
+                err_msg,
             )
 
         _response = self._make_request("GET", endpoint)
         _response.encoding = "utf-8"
 
         _csv_data_io = io.StringIO(_response.text)
-        match format:
+        match format_type:
             case "dict":
                 return list(csv.DictReader(_csv_data_io))
             case "reader":
@@ -70,9 +78,7 @@ class SfBulk:
                 raise ValueError("Internal error: Unsupported format.")
 
     def _get_final_interval(self, interval: int) -> int:
-        """
-        ポーリング間隔の最終値を決定するヘルパーメソッド。
-        """
+        """ポーリング間隔の最終値を決定するヘルパーメソッド。"""
         return interval if interval is not None else self._interval
 
     # Query operations
@@ -108,7 +114,7 @@ class SfBulk:
     def poll_job_query(
         self: "SfBulk",
         job_id: str,
-        interval: int = None,
+        interval: int | None = None,
     ) -> dict[str, Any]:
         """Poll query job status until completion."""
         while True:
@@ -124,10 +130,10 @@ class SfBulk:
     def get_job_query_results(
         self: "SfBulk",
         job_id: str,
-        format: str = "dict",
+        format_type: str = "dict",
     ) -> Any:
         """Get query job results in a specified format."""
-        return self._get_csv_results(f"query/{job_id}/results", format)
+        return self._get_csv_results(f"query/{job_id}/results", format_type)
 
     # CRUD operations
     def create_job_insert(self: "SfBulk", object_name: str) -> SfBulkJob:
@@ -139,7 +145,9 @@ class SfBulk:
         return self.create_job(object_name, "update")
 
     def create_job_upsert(
-        self: "SfBulk", object_name: str, external_id_field: str
+        self: "SfBulk",
+        object_name: str,
+        external_id_field: str,
     ) -> SfBulkJob:
         """Create an upsert job."""
         return self.create_job(object_name, "upsert", external_id_field)
