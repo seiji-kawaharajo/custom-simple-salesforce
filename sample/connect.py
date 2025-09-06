@@ -27,10 +27,9 @@ SECURITY_TOKEN = _ENV.get("SECURITY_TOKEN")
 CLIENT_ID = _ENV.get("CLIENT_ID")
 CLIENT_SECRET = _ENV.get("CLIENT_SECRET")
 
-logger.info(os.environ.copy())
-
 
 def main() -> None:
+    """Conect Sample."""
     id_json = {
         "auth_method": "password",
         "username": USERNAME,
@@ -40,7 +39,7 @@ def main() -> None:
     }
 
     sf_client = Sf.connection(id_json)
-    logger.info("username + password dict 接続成功!")
+    logger.info("username + password dict Connection successful!")
 
     id_json_str = f"""{{
         "auth_method": "password",
@@ -51,7 +50,7 @@ def main() -> None:
     }}"""
 
     sf_client = Sf.connection(id_json_str)
-    logger.info("username + password dict String 接続成功!")
+    logger.info("username + password dict String Connection successful!")
 
     # https://help.salesforce.com/s/articleView?id=xcloud.remoteaccess_oauth_client_credentials_flow.htm&type=5
     credential_yaml = f"""
@@ -62,19 +61,9 @@ def main() -> None:
     """
 
     sf_client = Sf.connection(credential_yaml)
-    logger.info("credential_yaml 接続成功!")
+    logger.info("credential_yaml Connection successful!")
 
-    credential_env = f"""
-    AUTH_METHOD: client_credentials
-    CLIENT_ID: {CLIENT_ID}
-    CLIENT_SECRET: {CLIENT_SECRET}
-    DOMAIN={DOMAIN}
-    """
-
-    sf_client = Sf.connection(credential_env)
-    logger.info("credential_env 接続成功!")
-
-    _response = sf_client.query("select id, Name from account limit 10")
+    _response = sf_client.query("select id, Name from account")
 
     for record in _response["records"][:3]:
         logger.info(record)
