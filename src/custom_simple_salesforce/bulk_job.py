@@ -22,7 +22,7 @@ class _SfBulkJobBase:
 
     _sf_bulk: "SfBulk"
     id: str
-    info: dict[str, Any]
+    _info: dict[str, Any]
 
     def __init__(self: "_SfBulkJobBase", sf_bulk: "SfBulk", job_info: dict[str, Any]) -> None:
         """Initialize common job attributes.
@@ -34,7 +34,17 @@ class _SfBulkJobBase:
         """
         self._sf_bulk = sf_bulk
         self.id = job_info["id"]
-        self.info = job_info
+        self._info = job_info
+
+    @property
+    def info(self: "_SfBulkJobBase") -> dict[str, Any]:
+        """Get the last known job information (read-only).
+
+        This property provides access to the job's state as of the last update
+        (e.g., after initialization, `get_info()`, or `wait()`).
+        To fetch the latest status from Salesforce, use the `get_info()` method.
+        """
+        return self._info
 
 
 class SfBulkJobQuery(_SfBulkJobBase):
@@ -55,6 +65,18 @@ class SfBulkJobQuery(_SfBulkJobBase):
 
     """
 
+    def get_info(self: "SfBulkJobQuery") -> dict[str, Any]:
+        """Fetch the latest job information from Salesforce.
+
+        Updates `self.info` with the latest status.
+
+        Returns:
+            The latest job information dictionary.
+
+        """
+        self._info = self._sf_bulk.query.get_info(self.id)
+        return self._info
+
     def wait(self: "SfBulkJobQuery", interval: int | None = None) -> dict[str, Any]:
         """Wait the job status until it reaches a terminal state.
 
@@ -69,8 +91,8 @@ class SfBulkJobQuery(_SfBulkJobBase):
             The final job information dictionary.
 
         """
-        self.info = self._sf_bulk.query.wait(self.id, interval=interval)
-        return self.info
+        self._info = self._sf_bulk.query.wait(self.id, interval=interval)
+        return self._info
 
     def get_results(
         self: "SfBulkJobQuery",
@@ -125,6 +147,18 @@ class SfBulkJob(_SfBulkJobBase):
         """
         self._sf_bulk.ingest.complete_upload(job_id=self.id)
 
+    def get_info(self: "SfBulkJob") -> dict[str, Any]:
+        """Fetch the latest job information from Salesforce.
+
+        Updates `self.info` with the latest status.
+
+        Returns:
+            The latest job information dictionary.
+
+        """
+        self._info = self._sf_bulk.ingest.get_info(job_id=self.id)
+        return self._info
+
     def wait(self: "SfBulkJob", interval: int | None = None) -> dict[str, Any]:
         """Wait the job status until it reaches a terminal state.
 
@@ -139,8 +173,8 @@ class SfBulkJob(_SfBulkJobBase):
             The final job information dictionary.
 
         """
-        self.info = self._sf_bulk.ingest.wait(job_id=self.id, interval=interval)
-        return self.info
+        self._info = self._sf_bulk.ingest.wait(job_id=self.id, interval=interval)
+        return self._info
 
     def is_successful(self: "SfBulkJob") -> bool:
         """Check if the job completed successfully.
