@@ -13,15 +13,13 @@ from pydantic import BaseModel, SecretStr, ValidationError
 from simple_salesforce.api import Salesforce
 
 
-class SalesforceBaseSettings(BaseModel):
-    """Base settings for Salesforce API authentication."""
-
+class SalesforceBaseSettings(BaseModel):  # noqa: D101
     auth_method: Literal["password", "client_credentials"]
     api_version: str = "64.0"
 
 
 class PasswordAuthSettings(SalesforceBaseSettings):
-    """Settings for Salesforce API authentication using a username and password."""
+    """Define settings for Salesforce API authentication using a username and password."""
 
     username: str
     password: SecretStr
@@ -30,7 +28,7 @@ class PasswordAuthSettings(SalesforceBaseSettings):
 
 
 class ClientCredentialsSettings(SalesforceBaseSettings):
-    """Settings for Salesforce API authentication using a client ID and client secret."""
+    """Define settings for Salesforce API authentication using a client ID and client secret."""
 
     client_id: str
     client_secret: SecretStr
@@ -38,21 +36,19 @@ class ClientCredentialsSettings(SalesforceBaseSettings):
 
 
 class Sf(Salesforce):
-    """Salesforce client.
+    """Provide a Salesforce client.
 
     This class extends the `simple-salesforce` Salesforce class to abstract
     authentication methods (password, client credentials) and simplify connection
     management. It can be used in the same way as the base class due to inheritance.
+
+    Args:
+        *args: A list of variable-length positional arguments passed to the parent.
+        **kwargs: A dictionary of arbitrary keyword arguments passed to the parent.
+
     """
 
-    def __init__(self: "Sf", *args: Any, **kwargs: Any) -> None:  # noqa: ANN401
-        """Initialize the Salesforce client.
-
-        Args:
-            *args: A list of variable-length positional arguments.
-            **kwargs: A dictionary of arbitrary keyword arguments.
-
-        """
+    def __init__(self: "Sf", *args: Any, **kwargs: Any) -> None:  # noqa: ANN401, D107
         super().__init__(*args, **kwargs)
 
     @classmethod
@@ -124,20 +120,27 @@ class Sf(Salesforce):
         using either "password" or "client_credentials" authentication methods.
 
         Args:
-            settings: A settings string (in YAML format) or a dictionary
-                      containing authentication details. Supported authentication
-                      methods are "password" and "client_credentials".
+            settings:
+                A settings string (in YAML format) or a dictionary
+                containing authentication details. Supported authentication
+                methods are "password" and "client_credentials".
 
         Returns:
-            Sf: An instance of the connected Salesforce client.
+            An instance of the connected Salesforce client.
 
         Raises:
-            ValueError: If the settings are invalid, authentication fails, or
-                        the authentication method is not supported.
-            TypeError: If the settings are not a dictionary or a string.
-            yaml.YAMLError: If the settings string is not a valid YAML format.
-            requests.exceptions.HTTPError: If the HTTP request for client
-                                          credentials fails.
+            ValueError:
+                If the settings are invalid, authentication fails, or
+                the authentication method is not supported.
+
+            TypeError:
+                If the settings are not a dictionary or a string.
+
+            yaml.YAMLError:
+                If the settings string is not a valid YAML format.
+
+            requests.exceptions.HTTPError:
+                If the HTTP request for client credentials fails.
 
         """
         config: dict[str, Any]

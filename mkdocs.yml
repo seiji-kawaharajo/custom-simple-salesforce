@@ -63,6 +63,7 @@ nav:
       - Client: reference/client.md
       - Bulk: reference/bulk.md
       - BulkJob: reference/bulk-job.md
+      - Types: reference/types.md
 
 plugins:
   search:
