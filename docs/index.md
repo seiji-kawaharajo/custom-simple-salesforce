@@ -22,7 +22,7 @@ You can connect to Salesforce from YAML or a Python dictionary using the library
 
 Alternatively, since it inherits `Salesforce` from `simple-salesforce`, you can use it by passing parameters in the same way.
 
-[`connect.py`](sample/connect.py)
+`connect.py`
 ```py
 from custom_simple_salesforce import Sf
 
@@ -42,8 +42,6 @@ print("Connection successful using YAML string!")
 ### 2. Bulk Query Example
 
 Use the `bulk` module to efficiently query large amounts of data. The results are returned as a list of dictionaries.
-
-`bulk`モジュールを使って、大規模なデータを効率的にクエリできます。結果は辞書のリストとして返されます。
 
 ```py
 from custom_simple_salesforce import Sf, SfBulk
