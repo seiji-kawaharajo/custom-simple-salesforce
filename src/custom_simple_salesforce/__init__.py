@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-"""A Python library for interacting with the Salesforce API.
+"""Provide a Python library for interacting with the Salesforce API.
 
 This package provides:
 - Sf: A client for the Salesforce REST API.

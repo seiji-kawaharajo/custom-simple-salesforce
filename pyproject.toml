@@ -53,6 +53,9 @@ fixable = ["ALL"]
 
 exclude = [".git", "__pycache__", "venv", "docs", "dist", "build"]
 
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["EXE002"]
+
 [tool.mypy]
 python_version = "3.13"
 strict = true
