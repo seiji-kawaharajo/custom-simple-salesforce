@@ -40,14 +40,14 @@ class _SfBulkJobBase:
 class SfBulkJobQuery(_SfBulkJobBase):
     """Manage a Salesforce Bulk API query job.
 
-    This class simplifies polling for job status and retrieving results for a
+    This class simplifies waiting for job status and retrieving results for a
     specific query job.
 
     Attributes:
         _sf_bulk (SfBulk): The Bulk API client instance used for API communication.
         id (str): The unique ID for the Bulk API job.
         info (dict[str, Any]): A dictionary holding the latest metadata and
-            status for the job, which is updated after polling.
+            status for the job, which is updated after waiting.
 
     Args:
         sf_bulk (SfBulk): The Bulk API client instance.
@@ -55,21 +55,21 @@ class SfBulkJobQuery(_SfBulkJobBase):
 
     """
 
-    def poll_status(self: "SfBulkJobQuery", interval: int | None = None) -> dict[str, Any]:
-        """Poll the job status until it reaches a terminal state.
+    def wait(self: "SfBulkJobQuery", interval: int | None = None) -> dict[str, Any]:
+        """Wait the job status until it reaches a terminal state.
 
         The terminal states are 'JobComplete', 'Aborted', or 'Failed'.
         Updates `self.info` with the final job status.
 
         Args:
-            interval: The polling interval in seconds. If None,
+            interval: The waiting interval in seconds. If None,
                 the client's default is used.
 
         Returns:
             The final job information dictionary.
 
         """
-        self.info = self._sf_bulk.poll_job_query(self.id, interval=interval)
+        self.info = self._sf_bulk.query.wait(self.id, interval=interval)
         return self.info
 
     def get_results(
@@ -85,20 +85,20 @@ class SfBulkJobQuery(_SfBulkJobBase):
             The query results.
 
         """
-        return self._sf_bulk.get_job_query_results(self.id, format_type=format_type)
+        return self._sf_bulk.query.get_results(self.id, format_type=format_type)
 
 
 class SfBulkJob(_SfBulkJobBase):
     """Manage a Salesforce Bulk API DML job (e.g., insert, update, delete).
 
-    Supports uploading CSV data, closing the job, polling its status, and
+    Supports uploading CSV data, marking the upload as complete, waiting its status, and
     retrieving successful or failed records.
 
     Attributes:
         _sf_bulk (SfBulk): The Bulk API client instance used for API communication.
         id (str): The unique ID for the Bulk API job.
         info (dict[str, Any]): A dictionary holding the latest metadata and
-            status for the job, which is updated after polling.
+            status for the job, which is updated after waiting.
 
     Args:
         sf_bulk (SfBulk): The Bulk API client instance.
@@ -113,30 +113,33 @@ class SfBulkJob(_SfBulkJobBase):
             csv_data: A string containing the data in CSV format.
 
         """
-        self._sf_bulk.upload_job_data(job_id=self.id, csv_data=csv_data)
+        self._sf_bulk.ingest.upload_data(job_id=self.id, csv_data=csv_data)
 
-    def close(self: "SfBulkJob") -> None:
-        """Close the job, marking it as ready for processing.
+    def complete_upload(
+        self: "SfBulkJob",
+    ) -> None:  # メソッド名を 'close' から 'complete_upload' に変更
+        """Mark the job's data upload as complete.
 
-        This signals to Salesforce that all data has been uploaded.
+        This signals to Salesforce that all data has been uploaded and the job
+        is ready for processing (transitions to 'UploadComplete' state).
         """
-        self._sf_bulk.uploaded_job(job_id=self.id)
+        self._sf_bulk.ingest.complete_upload(job_id=self.id)
 
-    def poll_status(self: "SfBulkJob", interval: int | None = None) -> dict[str, Any]:
-        """Poll the job status until it reaches a terminal state.
+    def wait(self: "SfBulkJob", interval: int | None = None) -> dict[str, Any]:
+        """Wait the job status until it reaches a terminal state.
 
         The terminal states are 'JobComplete', 'Aborted', or 'Failed'.
         Updates `self.info` with the final job status.
 
         Args:
-            interval: The polling interval in seconds. If None,
+            interval: The waiting interval in seconds. If None,
                 the client's default is used.
 
         Returns:
             The final job information dictionary.
 
         """
-        self.info = self._sf_bulk.poll_job(job_id=self.id, interval=interval)
+        self.info = self._sf_bulk.ingest.wait(job_id=self.id, interval=interval)
         return self.info
 
     def is_successful(self: "SfBulkJob") -> bool:
@@ -185,7 +188,7 @@ class SfBulkJob(_SfBulkJobBase):
             The successful records in the specified format.
 
         """
-        return self._sf_bulk.get_ingest_successful_results(
+        return self._sf_bulk.ingest.get_successful_results(
             job_id=self.id,
             format_type=format_type,
         )
@@ -202,7 +205,7 @@ class SfBulkJob(_SfBulkJobBase):
             The failed records in the specified format.
 
         """
-        return self._sf_bulk.get_ingest_failed_results(job_id=self.id, format_type=format_type)
+        return self._sf_bulk.ingest.get_failed_results(job_id=self.id, format_type=format_type)
 
     def get_unprocessed_records(self: "SfBulkJob", format_type: FormatType = "dict") -> ResultType:
         """Get records that were not processed.
@@ -217,7 +220,7 @@ class SfBulkJob(_SfBulkJobBase):
             The unprocessed records in the specified format.
 
         """
-        return self._sf_bulk.get_ingest_unprocessed_records(
+        return self._sf_bulk.ingest.get_unprocessed_records(
             job_id=self.id,
             format_type=format_type,
         )

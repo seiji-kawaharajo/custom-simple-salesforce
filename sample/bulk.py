@@ -40,8 +40,8 @@ def main() -> None:
     bulk_client = SfBulk(sf_client)
 
     logger.info("Create query job")
-    job = bulk_client.create_job_query("select id, Name from account")
-    job.poll_status()
+    job = bulk_client.query.create("select id, Name from account")
+    job.wait()
 
     logger.info("Result with format as dictionary")
     results_list_dict = job.get_results()
@@ -58,7 +58,7 @@ def main() -> None:
     logger.info("%s...", results_csv[:30])
 
     # create insert job
-    insert_job = bulk_client.create_job_insert("Account")
+    insert_job = bulk_client.ingest.create_insert("Account")
     logger.info(insert_job.info)
 
     csv_data = """Name,Industry
@@ -66,8 +66,8 @@ def main() -> None:
     Test Account 2,Finance"""
 
     insert_job.upload_data(csv_data)
-    insert_job.close()
-    insert_job.poll_status()
+    insert_job.complete_upload()
+    insert_job.wait()
 
     if insert_job.is_successful():
         logger.info("Job completed.")
