@@ -10,7 +10,11 @@ This library can be installed with `uv` or `pip`.
 
 ```bash
 uv pip install git+https://github.com/seiji-kawaharajo/custom-simple-salesforce.git
-# または
+```
+
+or
+
+```bash
 pip install git+https://github.com/seiji-kawaharajo/custom-simple-salesforce.git
 ```
 
