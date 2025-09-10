@@ -9,7 +9,7 @@ on:
       - 'template.yaml'
       - 'pyproject.toml'
       - 'uv.lock'
-      - '.github/workflows/deploy.yml'
+      - '.github/workflows/mkdocs.yml'
 
 jobs:
   deploy:
