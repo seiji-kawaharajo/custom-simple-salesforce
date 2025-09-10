@@ -20,7 +20,8 @@
         "yzhang.markdown-all-in-one",
         "oderwat.indent-rainbow",
         "usernamehw.errorlens",
-        "ms-python.mypy-type-checker"
+        "ms-python.mypy-type-checker",
+        "GitHub.vscode-github-actions"
       ]
     }
   }

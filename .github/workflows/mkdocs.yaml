@@ -1,0 +1,36 @@
+name: Deploy MkDocs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'template.yaml'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.github/workflows/deploy.yml'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies with uv
+        run: uv sync --frozen
+
+      - name: Deploy to GitHub Pages
+        run: uv run mkdocs gh-deploy --force
