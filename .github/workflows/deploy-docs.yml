@@ -33,7 +33,7 @@ jobs:
 
       - name: Sync dependencies with uv
         run: |
-          uv pip compile pyproject.toml -o requirements.txt
+          uv pip compile pyproject.toml --all-extras -o requirements.txt
           pip install -r requirements.txt
 
       - name: Deploy to GitHub Pages
