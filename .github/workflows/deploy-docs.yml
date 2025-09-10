@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'src/**'
+      - 'docs/**'
       - 'template.yaml'
       - 'pyproject.toml'
       - 'uv.lock'

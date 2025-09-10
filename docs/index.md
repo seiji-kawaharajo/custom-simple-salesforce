@@ -4,7 +4,7 @@
 
 Based on `simple-salesforce`, it provides features to simplify the authentication process and make Bulk API operations easier to handle.
 
-## Installation(Not verified)
+## Installation
 
 This library can be installed with `uv` or `pip`.
 
