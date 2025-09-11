@@ -21,7 +21,8 @@
         "oderwat.indent-rainbow",
         "usernamehw.errorlens",
         "ms-python.mypy-type-checker",
-        "GitHub.vscode-github-actions"
+        "GitHub.vscode-github-actions",
+        "EditorConfig.EditorConfig"
       ]
     }
   }
