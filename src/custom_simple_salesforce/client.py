@@ -72,7 +72,10 @@ class Sf(Salesforce):
         )
 
     @classmethod
-    def _connect_with_client_credentials(cls: type["Sf"], config: dict[str, Any]) -> "Sf":
+    def _connect_with_client_credentials(
+        cls: type["Sf"],
+        config: dict[str, Any],
+    ) -> "Sf":
         """Connect to Salesforce using client credentials authentication."""
         try:
             validated_settings = ClientCredentialsSettings.model_validate(

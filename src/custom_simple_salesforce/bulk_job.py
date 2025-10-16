@@ -24,7 +24,11 @@ class _SfBulkJobBase:
     id: str
     _info: dict[str, Any]
 
-    def __init__(self: "_SfBulkJobBase", sf_bulk: "SfBulk", job_info: dict[str, Any]) -> None:
+    def __init__(
+        self: "_SfBulkJobBase",
+        sf_bulk: "SfBulk",
+        job_info: dict[str, Any],
+    ) -> None:
         """Initialize common job attributes.
 
         Args:
@@ -212,7 +216,10 @@ class SfBulkJob(_SfBulkJobBase):
         """
         return self.info.get("state") == "Aborted"
 
-    def get_successful_results(self: "SfBulkJob", format_type: FormatType = "dict") -> ResultType:
+    def get_successful_results(
+        self: "SfBulkJob",
+        format_type: FormatType = "dict",
+    ) -> ResultType:
         """Get the successfully processed records.
 
         Args:
@@ -227,7 +234,10 @@ class SfBulkJob(_SfBulkJobBase):
             format_type=format_type,
         )
 
-    def get_failed_results(self: "SfBulkJob", format_type: FormatType = "dict") -> ResultType:
+    def get_failed_results(
+        self: "SfBulkJob",
+        format_type: FormatType = "dict",
+    ) -> ResultType:
         """Get the records that failed to process.
 
         The results include error messages from Salesforce.
@@ -239,9 +249,15 @@ class SfBulkJob(_SfBulkJobBase):
             The failed records in the specified format.
 
         """
-        return self._sf_bulk.ingest.get_failed_results(job_id=self.id, format_type=format_type)
+        return self._sf_bulk.ingest.get_failed_results(
+            job_id=self.id,
+            format_type=format_type,
+        )
 
-    def get_unprocessed_records(self: "SfBulkJob", format_type: FormatType = "dict") -> ResultType:
+    def get_unprocessed_records(
+        self: "SfBulkJob",
+        format_type: FormatType = "dict",
+    ) -> ResultType:
         """Get records that were not processed.
 
         This typically occurs if the job is aborted or a batch fails before

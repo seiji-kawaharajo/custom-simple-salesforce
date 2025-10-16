@@ -79,7 +79,10 @@ class SfBulk:
                     "query": query,
                 },
             )
-            return SfBulkJobQuery(self._sf_bulk, cast("dict[str, Any]", _response.json()))
+            return SfBulkJobQuery(
+                self._sf_bulk,
+                cast("dict[str, Any]", _response.json()),
+            )
 
         def get_info(self, job_id: str) -> dict[str, Any]:
             """Get information about a specific query job.
