@@ -23,15 +23,13 @@ dev = [
     "build>=1.3.0",
     "griffe-pydantic>=1.1.6",
     "mkdocs>=1.6.1",
-    "mkdocs-i18n>=0.4.6",
     "mkdocs-material>=9.6.18",
     "mkdocstrings-python>=1.18.2",
-    "mypy>=1.17.1",
     "pandas>=2.3.2",
-    "pre-commit>=4.3.0",
     "pymdown-extensions>=10.16.1",
     "python-dotenv>=1.1.1",
     "ruff>=0.12.10",
+    "ty>=0.0.1a22",
     "types-pyyaml>=6.0.12.20250822",
     "types-requests>=2.32.4.20250809",
 ]
@@ -44,18 +42,21 @@ docstring-code-format = true
 
 [tool.ruff.lint]
 select = ["ALL"]
-# ignore = ["D203", "D213", "TD001", "TD002", "TD003", "D4"]
+ignore = ["EXE002", "E501", "D203", "D213", "D415"]
 unfixable = []
 
 fixable = ["ALL"]
 
-exclude = [".git", "__pycache__", "venv", "docs", "dist", "build"]
+exclude = [
+    ".git",
+    "__pycache__",
+    "venv",
+    "docs",
+    "site",
+    "dist",
+    "build",
+    ".pytest_cache",
+]
 
-[tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["EXE002"]
-
-[tool.mypy]
-python_version = "3.13"
-strict = true
-ignore_missing_imports = true
-exclude = ["examples/.*"]
+[tool.ruff.lint.pydocstyle]
+convention = "google"

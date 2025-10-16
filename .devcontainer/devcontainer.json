@@ -3,6 +3,10 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
+  "containerEnv": {
+    "UV_LINK_MODE": "copy",
+    "ENV_NAME": "development"
+  },
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
@@ -13,6 +17,7 @@
         "ms-azuretools.vscode-docker",
         "ms-python.python",
         "charliermarsh.ruff",
+        "astral-sh.ty@prerelease",
         "njpwerner.autodocstring",
         "redhat.vscode-yaml",
         "shardulm94.trailing-spaces",
@@ -20,7 +25,6 @@
         "yzhang.markdown-all-in-one",
         "oderwat.indent-rainbow",
         "usernamehw.errorlens",
-        "ms-python.mypy-type-checker",
         "GitHub.vscode-github-actions",
         "EditorConfig.EditorConfig"
       ]
