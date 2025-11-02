@@ -1,8 +1,8 @@
 {
-  "name": "Python 3.13 with uv",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
+  "name": "custom simple salesforce",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
   "containerEnv": {
     "UV_LINK_MODE": "copy",
     "ENV_NAME": "development"
@@ -10,7 +10,7 @@
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
-  "postCreateCommand": ".devcontainer/post-create.sh",
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
       "extensions": [
