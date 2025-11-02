@@ -1,8 +1,16 @@
+default_language_version:
+  python: python3.13
+
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.10 # pyproject.tomlのruffバージョンと合わせる
+    rev: v0.14.3
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
       - id: ruff-format
         args: [--check]
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
